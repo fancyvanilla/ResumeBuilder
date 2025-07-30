@@ -16,7 +16,7 @@ spec:
       containers:
         - name: client
           image: fancyvanilla/resume-builder-frontend:v1
-          imagePullPolicy: Never
+          imagePullPolicy: Always
           ports:
             - containerPort: 80
 ---
@@ -39,7 +39,7 @@ spec:
       containers:
         - name: server
           image: fancyvanilla/resume-builder-backend:v1
-          imagePullPolicy: Never
+          imagePullPolicy: Always
           volumeMounts:
             - name: uploads
               mountPath: /uploads
