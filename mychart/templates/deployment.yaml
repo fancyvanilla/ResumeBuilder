@@ -1,0 +1,59 @@
+# App Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: resume-builder-frontend
+spec: 
+  replicas: 1
+  selector:
+    matchLabels:
+      app: resume-builder-frontend
+  template:
+    metadata:
+      labels:
+        app: resume-builder-frontend
+    spec:
+      containers:
+        - name: client
+          image: front-resume-image
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 80
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: resume-builder-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: resume-builder-backend
+  template:
+    metadata:
+      labels:
+        app: resume-builder-backend
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: k8s-worker-node-1
+      containers:
+        - name: server
+          image: backend-resume-image
+          imagePullPolicy: Never
+          volumeMounts:
+            - name: uploads
+              mountPath: /uploads
+          ports:
+            - containerPort: 4000
+          env:
+            - name: GROQ_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: backend-env
+                  key: GROQ_API_KEY
+      restartPolicy: Always
+      volumes:
+        - name: uploads
+          hostPath:
+            path: /mnt/data/uploads
+            type: DirectoryOrCreate

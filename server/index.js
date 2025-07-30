@@ -21,9 +21,14 @@ function generateID() {
 
 app.use("/uploads", express.static("uploads"));
 
+const upload_dir= "uploads";
+if (!fs.existsSync(upload_dir)) {
+    fs.mkdirSync(upload_dir);
+}
+
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, "uploads");
+        cb(null, upload_dir);
     },
     filename: (req, file, cb) => {
         cb(null, Date.now() + path.extname(file.originalname));
@@ -71,7 +76,7 @@ app.post("/resume/create", upload.single("headshotImage"), async (req, res) => {
         phoneNumber,
         address,
         email,
-        image_url: `http://localhost:4000/uploads/${req.file.filename}`,
+        image_url: `http://192.168.19.28/api/v1/uploads/${req.file.filename}`,
         currentPosition,
         currentLength,
         currentTechnologies,
