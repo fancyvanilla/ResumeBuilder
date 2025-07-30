@@ -39,14 +39,14 @@ jobs:
       uses: docker/build-push-action@v6
       with:
         push: true
-        tags: fancyvanilla/resume-builder-frontend:v1
+        tags: fancyvanilla/resume-builder-frontend:v2
         context: "{{defaultContext}}:client"
 
     - name: Build and push backend image
       uses: docker/build-push-action@v6
       with:
         push: true
-        tags: fancyvanilla/resume-builder-backend:v1
+        tags: fancyvanilla/resume-builder-backend:v2
         context: "{{defaultContext}}:server"
 
   deploy:
@@ -63,7 +63,7 @@ jobs:
         $env:KUBECONFIG_CONTENT | Out-File -FilePath kubeconfig -Encoding utf8
         echo "KUBECONFIG=$PWD/kubeconfig" >> $env:GITHUB_ENV
       shell: powershell
-      
+
     - name: Helm lint
       run: helm lint ./mychart
 
