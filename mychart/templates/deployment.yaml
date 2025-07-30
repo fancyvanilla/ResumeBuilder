@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: client
-          image: front-resume-image
+          image: fancyvanilla/resume-builder-frontend:v1
           imagePullPolicy: Never
           ports:
             - containerPort: 80
@@ -38,7 +38,7 @@ spec:
         kubernetes.io/hostname: k8s-worker-node-1
       containers:
         - name: server
-          image: backend-resume-image
+          image: fancyvanilla/resume-builder-backend:v1
           imagePullPolicy: Never
           volumeMounts:
             - name: uploads
