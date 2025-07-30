@@ -51,21 +51,19 @@ jobs:
 
   deploy:
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
 
     - name: Set kubeconfig from secret
+      env:
+        KUBECONFIG_CONTENT: ${{ secrets.KUBECONFIG_CONTENT }}
       run: |
-        echo "${{ secrets.KUBECONFIG_CONTENT }}" > kubeconfig
-        echo "KUBECONFIG=$PWD/kubeconfig" >> $GITHUB_ENV
-  
-    - name: Set up Helm
-      run: |
-        curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
-        helm version
-
+        $env:KUBECONFIG_CONTENT | Out-File -FilePath kubeconfig -Encoding utf8
+        echo "KUBECONFIG=$PWD/kubeconfig" >> $env:GITHUB_ENV
+      shell: powershell
+      
     - name: Helm lint
       run: helm lint ./mychart
 
