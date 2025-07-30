@@ -126,7 +126,4 @@ If no work experience is provided, say "I did academic and personal projects.`;
     }
 
 });
-app.get("/health", (req, res) => {
-    res.json({ status: "Server is running" });
-});
 app.listen(PORT,()=>console.log(`Server listening on port ${PORT}`))
