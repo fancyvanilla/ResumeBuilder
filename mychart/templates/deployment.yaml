@@ -15,10 +15,10 @@ spec:
     spec:
       containers:
         - name: client
-          image: fancyvanilla/resume-builder-frontend:v1
-          imagePullPolicy: Always
+          image: {{ .Values.frontend.image.repository }}:{{ .Values.frontend.image.tag }}
+          imagePullPolicy: {{ .Values.frontend.image.pullPolicy }}
           ports:
-            - containerPort: 80
+            - containerPort: {{ .Values.frontend.image.port }}
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -38,13 +38,13 @@ spec:
         kubernetes.io/hostname: k8s-worker-node-1
       containers:
         - name: server
-          image: fancyvanilla/resume-builder-backend:v1
-          imagePullPolicy: Always
+          image: "{{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag }}"
+          imagePullPolicy: {{ .Values.backend.image.pullPolicy }}
           volumeMounts:
             - name: uploads
               mountPath: /uploads
           ports:
-            - containerPort: 4000
+            - containerPort: {{ .Values.backend.image.port }}
           env:
             - name: GROQ_API_KEY
               valueFrom:
