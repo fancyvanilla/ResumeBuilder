@@ -15,6 +15,10 @@ const PORT=4000
 app.use(express.json());
 app.use(cors()); // Enable CORS for all routes
 
+app.get("/health", (req, res) => {
+    res.json({ status: "Server is running" });
+}); 
+
 function generateID() {
     return uuidv4();
   }
