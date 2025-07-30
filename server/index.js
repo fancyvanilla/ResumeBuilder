@@ -2,6 +2,7 @@ const Groq=require("groq-sdk")
 const express= require('express');
 const cors=require('cors');
 require('dotenv').config();
+const fs = require('fs'); 
 const multer = require("multer");
 const { v4: uuidv4 } = require('uuid');
 
