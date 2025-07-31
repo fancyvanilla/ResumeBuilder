@@ -4,13 +4,47 @@ on:
     branches: [ master ]
 
 jobs:
-  scan:
+  code-quality:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    - name : Scan with SonarCloud
+      uses: sonarsource/sonarcloud-github-action@master
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      with:
+        args: >
+          -Dsonar.projectKey=fancyvanilla_ResumeBuilder
+          -Dsonar.organization=fancyvanilla
+  security-scan:
+    needs: code-quality
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    - name: Install frontend dependencies
+      run: npm install
+      working-directory: client
 
-    - name: Scan the backend for vulnerabilities
+    - name: Run npx audit on frontend
+      run: npm audit --audit-level=moderate
+      working-directory: client
+
+    - name: Scan for vulnerabilities for frontend
+      uses: aquasecurity/trivy-action@0.28.0
+      with:
+        scan-type: repo
+        scan-ref: ./client
+        severity: CRITICAL,HIGH
+        ignore-unfixed: true
+        format: table
+    - name: Scan for vulnerabilities for backend
       uses: aquasecurity/trivy-action@0.28.0
       with:
         scan-type: repo
