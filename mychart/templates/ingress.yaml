@@ -2,11 +2,13 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: resume-builder-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
 spec:
   ingressClassName: nginx
   rules:
     - http:
-        paths:
+        paths: 
           - path: /
             pathType: Prefix
             backend:
@@ -14,7 +16,7 @@ spec:
                 name: resume-frontend-service
                 port:
                   number: 80
-          - path: /api/v1
+          - path: /api/v1(/|$)(.*)
             pathType: Prefix
             backend:
               service:
