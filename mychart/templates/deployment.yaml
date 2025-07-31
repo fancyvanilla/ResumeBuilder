@@ -4,7 +4,7 @@ kind: Deployment
 metadata:
   name: resume-builder-frontend
 spec: 
-  replicas: 1
+  replicas: {{ .Values.frontend.replicas | default 1 }}
   selector:
     matchLabels:
       app: resume-builder-frontend
@@ -19,13 +19,20 @@ spec:
           imagePullPolicy: {{ .Values.frontend.image.pullPolicy }}
           ports:
             - containerPort: {{ .Values.frontend.image.port }}
+          resources:
+            requests:
+              cpu: {{ .Values.frontend.resources.requests.cpu | default "100m" }}
+              memory: {{ .Values.frontend.resources.requests.memory | default "200Mi" }}
+            limits:
+              cpu: {{ .Values.frontend.resources.limits.cpu | default "100m" }}
+              memory: {{ .Values.frontend.resources.limits.memory | default "200Mi" }}
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: resume-builder-backend
 spec:
-  replicas: 1
+  replicas: {{ .Values.backend.replicas | default 1 }}
   selector:
     matchLabels:
       app: resume-builder-backend
@@ -34,26 +41,36 @@ spec:
       labels:
         app: resume-builder-backend
     spec:
-      nodeSelector:
-        kubernetes.io/hostname: k8s-worker-node-1
       containers:
         - name: server
           image: "{{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag }}"
           imagePullPolicy: {{ .Values.backend.image.pullPolicy }}
           volumeMounts:
-            - name: uploads
-              mountPath: /uploads
+            - mountPath: /uploads
+              name: nfs-storage
           ports:
             - containerPort: {{ .Values.backend.image.port }}
+          resources:
+            requests:
+              cpu: {{ .Values.backend.resources.requests.cpu | default "200m" }}
+              memory: {{ .Values.backend.resources.requests.memory | default "300Mi" }}
+            limits:
+              cpu: {{ .Values.backend.resources.limits.cpu | default "100m" }}
+              memory: {{ .Values.backend.resources.limits.memory | default "150Mi" }} 
           env:
             - name: GROQ_API_KEY
               valueFrom:
                 secretKeyRef:
                   name: backend-env
                   key: GROQ_API_KEY
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.backend.image.port }}
+            initialDelaySeconds: 5
+            periodSeconds: 5
       restartPolicy: Always
       volumes:
-        - name: uploads
-          hostPath:
-            path: /mnt/data/uploads
-            type: DirectoryOrCreate
+        - name: nfs-storage
+          persistentVolumeClaim:
+            claimName: nfs-pvc
