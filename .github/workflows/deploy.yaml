@@ -81,6 +81,7 @@ jobs:
         context: "{{defaultContext}}:server"
 
   deploy:
+    if: false  # Disable deployment for now to test the workflow
     needs: build
     runs-on: self-hosted
     steps:
