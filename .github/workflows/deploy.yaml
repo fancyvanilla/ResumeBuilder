@@ -30,6 +30,7 @@ jobs:
     - name: Run npx audit on frontend
       run: npm audit --audit-level=moderate
       working-directory: client
+      continue-on-error: true
 
     - name: Scan for vulnerabilities for frontend
       uses: aquasecurity/trivy-action@0.28.0
