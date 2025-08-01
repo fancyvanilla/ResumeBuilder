@@ -12,14 +12,11 @@ jobs:
       with:
         fetch-depth: 0
     - name : Scan with SonarCloud
-      uses: sonarsource/sonarqube-scan-action@master
+      uses: SonarSource/sonarqube-scan-action@v4
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       with:
-        args: >
-          -Dsonar.projectKey=fancyvanilla_ResumeBuilder
-          -Dsonar.organization=fancyvanilla
+        projectBaseDir: .
   security-scan:
     needs: code-quality
     runs-on: ubuntu-latest
