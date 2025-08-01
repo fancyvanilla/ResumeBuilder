@@ -12,7 +12,7 @@ jobs:
       with:
         fetch-depth: 0
     - name : Scan with SonarCloud
-      uses: SonarSource/sonarqube-scan-action@v4
+      uses: SonarSource/sonarqube-github-action@v4
       env:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
   security-scan:
