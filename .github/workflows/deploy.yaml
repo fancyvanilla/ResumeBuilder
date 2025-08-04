@@ -15,7 +15,7 @@ jobs:
       uses: SonarSource/sonarcloud-github-action@v2.3.0
       env:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-  security-scan:
+  static-checks:
     needs: code-quality
     runs-on: ubuntu-latest
     steps:
@@ -32,22 +32,14 @@ jobs:
       working-directory: client
       continue-on-error: true
 
-    - name: Scan for vulnerabilities for frontend
-      uses: aquasecurity/trivy-action@0.28.0
-      with:
-        scan-type: repo
-        scan-ref: ./client
-        severity: CRITICAL,HIGH
-        ignore-unfixed: true
-        format: table
-    - name: Scan for vulnerabilities for backend
-      uses: aquasecurity/trivy-action@0.28.0
-      with:
-        scan-type: repo
-        scan-ref: ./server
-        severity: CRITICAL,HIGH
-        ignore-unfixed: true
-        format: table
+    - name: Install backend dependencies
+      run: npm install
+      working-directory: server
+
+    - name: Run npm audit on backend
+      run: npm audit --audit-level=moderate
+      working-directory: server
+      continue-on-error: true
 
   build:
     runs-on: ubuntu-latest
@@ -78,6 +70,24 @@ jobs:
         push: true
         tags: fancyvanilla/resume-builder-backend:v2
         context: "{{defaultContext}}:server"
+
+    - name: Trivy scan for frontend
+      uses: aquasecurity/trivy-action@0.28.0
+      with:
+        scan-type: image
+        image: fancyvanilla/resume-builder-frontend:v2
+        severity: CRITICAL,HIGH
+        ignore-unfixed: true
+        format: table
+
+    - name: Trivy scan for backend
+      uses: aquasecurity/trivy-action@0.28.0
+      with:
+        scan-type: image
+        image: fancyvanilla/resume-builder-backend:v2
+        severity: CRITICAL,HIGH
+        ignore-unfixed: true
+        format: table
 
   deploy:
     if: false  # Disable deployment for now to test the workflow
