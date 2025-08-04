@@ -43,7 +43,7 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
-    needs: security-scan
+    needs: static-checks
     steps:
     - name: Log in to Docker Hub
       uses: docker/login-action@v2
