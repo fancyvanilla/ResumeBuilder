@@ -74,8 +74,7 @@ jobs:
     - name: Trivy scan for frontend
       uses: aquasecurity/trivy-action@0.28.0
       with:
-        scan-type: image
-        image: fancyvanilla/resume-builder-frontend:v2
+        image-ref: fancyvanilla/resume-builder-frontend:v2
         severity: CRITICAL,HIGH
         ignore-unfixed: true
         format: table
@@ -83,8 +82,7 @@ jobs:
     - name: Trivy scan for backend
       uses: aquasecurity/trivy-action@0.28.0
       with:
-        scan-type: image
-        image: fancyvanilla/resume-builder-backend:v2
+        image-ref: fancyvanilla/resume-builder-backend:v2
         severity: CRITICAL,HIGH
         ignore-unfixed: true
         format: table
