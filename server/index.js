@@ -85,7 +85,7 @@ app.post("/resume/create", upload.single("headshotImage"), async (req, res) => {
         education:educationArray
     };
     const remainderText = (history) => {
-        let stringText = "";
+        let stringText="";
         for (let i = 0; i < history.length; i++) {
             stringText += ` ${history[i].name} as a ${history[i].position}.`;
         }
