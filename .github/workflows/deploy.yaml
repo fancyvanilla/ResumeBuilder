@@ -122,7 +122,7 @@ jobs:
         format: table
 
   deploy:
-    needs: [ filter ]
+    needs: [ filter, build_and_scan ]
     runs-on: self-hosted
     if: ${{ needs.filter.outputs.server_changed == 'true' || needs.filter.outputs.client_changed == 'true' || needs.filter.outputs.charts_changed == 'true' }}
     steps:
