@@ -3,7 +3,7 @@ on:
   push:
     branches: [ master ]
 env:
-    IMAGE_TAG: ${{ github.sha }}
+    IMAGE_TAG: ${{ github.sha[0:7] }}
 jobs:
   filter:
     runs-on: ubuntu-latest
@@ -92,7 +92,7 @@ jobs:
       uses: docker/build-push-action@v6
       with:
         push: true
-        tags: fancyvanilla/resume-builder-frontend:${{ env.IMAGE_TAG.substr(0, 7) }}
+        tags: fancyvanilla/resume-builder-frontend:${{ env.IMAGE_TAG }}
         context: "{{defaultContext}}:client"
 
     - name: Build and push backend image
@@ -100,14 +100,14 @@ jobs:
       if: ${{ needs.filter.outputs.server_changed == 'true' }}
       with:
         push: true
-        tags: fancyvanilla/resume-builder-backend:${{ env.IMAGE_TAG.substr(0, 7) }}
+        tags: fancyvanilla/resume-builder-backend:${{ env.IMAGE_TAG }}
         context: "{{defaultContext}}:server"
 
     - name: Trivy scan for frontend
       uses: aquasecurity/trivy-action@0.28.0
       if: ${{ needs.filter.outputs.client_changed == 'true' }}
       with:
-        image-ref: fancyvanilla/resume-builder-frontend:${{ env.IMAGE_TAG.substr(0, 7) }}
+        image-ref: fancyvanilla/resume-builder-frontend:${{ env.IMAGE_TAG }}
         severity: CRITICAL,HIGH
         ignore-unfixed: true
         format: table
@@ -116,7 +116,7 @@ jobs:
       uses: aquasecurity/trivy-action@0.28.0
       if: ${{ needs.filter.outputs.server_changed == 'true' }}
       with:
-        image-ref: fancyvanilla/resume-builder-backend:${{ env.IMAGE_TAG.substr(0, 7) }}
+        image-ref: fancyvanilla/resume-builder-backend:${{ env.IMAGE_TAG }}
         severity: CRITICAL,HIGH
         ignore-unfixed: true
         format: table
@@ -143,10 +143,10 @@ jobs:
       run: |
         FLAGS=""
         if ${{ needs.filter.outputs.client_changed == 'true' }}; then
-          FLAGS="$FLAGS --set frontend.image.tag=${{ env.IMAGE_TAG.substr(0, 7) }}"
+          FLAGS="$FLAGS --set frontend.image.tag=${{ env.IMAGE_TAG }}"
         fi
         if ${{ needs.filter.outputs.server_changed == 'true' }}; then
-          FLAGS="$FLAGS --set backend.image.tag=${{ env.IMAGE_TAG.substr(0, 7) }}"
+          FLAGS="$FLAGS --set backend.image.tag=${{ env.IMAGE_TAG }}"
         fi
         echo "flags=$FLAGS" >> $env:GITHUB_ENV
 
