@@ -91,7 +91,6 @@ app.post("/resume/create", upload.single("headshotImage"), async (req, res) => {
         }
         return stringText;
     };
-    
 const prompt1 = `Write a 100-word first-person description for the top of a resume.Do not include any introductory phrases, explanations, or any phrases like "Here is". Only provide the description. Start the description immediately. Details: 
 Name: ${fullName} 
 Role: ${currentPosition} (${currentLength} years) 
