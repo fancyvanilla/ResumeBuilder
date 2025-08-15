@@ -38,36 +38,33 @@ jobs:
       env:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
-  npm-audit-frontend:
+  npm-audit:
     needs: code-quality
     runs-on: ubuntu-latest
-    if: ${{ needs.filter.outputs.client_changed }}
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
       with:
         fetch-depth: 0
+
     - name: Install frontend dependencies
+      if: ${{ needs.filter.outputs.client_changed }}
       run: npm install
       working-directory: client
 
-    - name: Run npx audit on frontend
+    - name: Run npm audit on frontend
+      if: ${{ needs.filter.outputs.client_changed }}
       run: npm audit --audit-level=moderate
       working-directory: client
       continue-on-error: true
 
-  npm-audit-backend:
-    runs-on: ubuntu-latest
-    if: ${{ needs.filter.outputs.server_changed }}
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
     - name: Install backend dependencies
+      if: ${{ needs.filter.outputs.server_changed }}
       run: npm install
       working-directory: server
+
     - name: Run npm audit on backend
+      if: ${{ needs.filter.outputs.server_changed }}
       run: npm audit --audit-level=moderate
       working-directory: server
       continue-on-error: true
@@ -75,6 +72,7 @@ jobs:
   build_and_scan:
     runs-on: ubuntu-latest
     if: ${{ needs.filter.outputs.server_changed || needs.filter.outputs.client_changed }}
+    needs: npm-audit
     steps:
     - name: Log in to Docker Hub
       uses: docker/login-action@v2
