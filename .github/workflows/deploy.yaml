@@ -27,7 +27,7 @@ jobs:
               
   code-quality:
     runs-on: ubuntu-latest
-    if: ${{ needs.filter.outputs.server_changed || needs.filter.outputs.client_changed }}
+    if: ${{ needs.filter.outputs.server_changed == 'true' || needs.filter.outputs.client_changed == 'true' }}
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -48,30 +48,30 @@ jobs:
         fetch-depth: 0
 
     - name: Install frontend dependencies
-      if: ${{ needs.filter.outputs.client_changed }}
+      if: ${{ needs.filter.outputs.client_changed == 'true' }}
       run: npm install
       working-directory: client
 
     - name: Run npm audit on frontend
-      if: ${{ needs.filter.outputs.client_changed }}
+      if: ${{ needs.filter.outputs.client_changed == 'true' }}
       run: npm audit --audit-level=moderate
       working-directory: client
       continue-on-error: true
 
     - name: Install backend dependencies
-      if: ${{ needs.filter.outputs.server_changed }}
+      if: ${{ needs.filter.outputs.server_changed == 'true' }}
       run: npm install
       working-directory: server
 
     - name: Run npm audit on backend
-      if: ${{ needs.filter.outputs.server_changed }}
+      if: ${{ needs.filter.outputs.server_changed == 'true' }}
       run: npm audit --audit-level=moderate
       working-directory: server
       continue-on-error: true
 
   build_and_scan:
     runs-on: ubuntu-latest
-    if: ${{ needs.filter.outputs.server_changed || needs.filter.outputs.client_changed }}
+    if: ${{ needs.filter.outputs.server_changed == 'true' || needs.filter.outputs.client_changed == 'true' }}
     needs: npm-audit
     steps:
     - name: Log in to Docker Hub
@@ -87,7 +87,7 @@ jobs:
       uses: docker/setup-buildx-action@v3
 
     - name: Build and push frontend image
-      if: ${{ needs.filter.outputs.client_changed }}
+      if: ${{ needs.filter.outputs.client_changed == 'true' }}
       uses: docker/build-push-action@v6
       with:
         push: true
@@ -96,7 +96,7 @@ jobs:
 
     - name: Build and push backend image
       uses: docker/build-push-action@v6
-      if: ${{ needs.filter.outputs.server_changed }}
+      if: ${{ needs.filter.outputs.server_changed == 'true' }}
       with:
         push: true
         tags: fancyvanilla/resume-builder-backend:${IMAGE_TAG::7}
@@ -104,7 +104,7 @@ jobs:
 
     - name: Trivy scan for frontend
       uses: aquasecurity/trivy-action@0.28.0
-      if: ${{ needs.filter.outputs.client_changed }}
+      if: ${{ needs.filter.outputs.client_changed == 'true' }}
       with:
         image-ref: fancyvanilla/resume-builder-frontend:${IMAGE_TAG::7}
         severity: CRITICAL,HIGH
@@ -113,7 +113,7 @@ jobs:
 
     - name: Trivy scan for backend
       uses: aquasecurity/trivy-action@0.28.0
-      if: ${{ needs.filter.outputs.server_changed }}
+      if: ${{ needs.filter.outputs.server_changed == 'true' }}
       with:
         image-ref: fancyvanilla/resume-builder-backend:${IMAGE_TAG::7}
         severity: CRITICAL,HIGH
@@ -141,10 +141,10 @@ jobs:
     - name: Setup helm flags
       run: |
         FLAGS=""
-        if ${{ needs.filter.outputs.client_changed }}; then
+        if ${{ needs.filter.outputs.client_changed == 'true' }}; then
           FLAGS="$FLAGS --set frontend.image.tag=${IMAGE_TAG::7}"
         fi
-        if ${{ needs.filter.outputs.server_changed }}; then
+        if ${{ needs.filter.outputs.server_changed == 'true' }}; then
           FLAGS="$FLAGS --set backend.image.tag=${IMAGE_TAG::7}"
         fi
         echo "flags=$FLAGS" >> $env:GITHUB_ENV
