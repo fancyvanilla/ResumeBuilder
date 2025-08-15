@@ -122,8 +122,9 @@ jobs:
         format: table
 
   deploy:
-    needs: [build_and_scan, filter]
+    needs: [ filter ]
     runs-on: self-hosted
+    if: ${{ needs.filter.outputs.server_changed == 'true' || needs.filter.outputs.client_changed == 'true' || needs.filter.outputs.charts_changed == 'true' }}
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
