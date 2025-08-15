@@ -74,7 +74,6 @@ jobs:
 
   build_and_scan:
     runs-on: ubuntu-latest
-    needs: static-checks
     if: ${{ needs.filter.outputs.server_changed || needs.filter.outputs.client_changed }}
     steps:
     - name: Log in to Docker Hub
