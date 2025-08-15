@@ -2,10 +2,32 @@ name: Deploy to Kubernetes
 on:
   push:
     branches: [ master ]
-
+env:
+    IMAGE_TAG: ${{ github.sha }}
 jobs:
+  filter:
+    runs-on: ubuntu-latest
+    outputs:
+      server_changed: ${{ steps.filter.outputs.server }}
+      client_changed: ${{ steps.filter.outputs.client }}
+      charts_changed: ${{ steps.filter.outputs.charts }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: Filter paths
+        id: filter
+        uses: dorny/paths-filter@v2
+        with:
+          filters: |
+            server:
+              - 'server/**'
+            client:
+              - 'client/**'
+            charts:
+              - 'mychart/**'
+              
   code-quality:
     runs-on: ubuntu-latest
+    if: ${{ needs.filter.outputs.server_changed || needs.filter.outputs.client_changed }}
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -15,9 +37,11 @@ jobs:
       uses: SonarSource/sonarcloud-github-action@v2.3.0
       env:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-  static-checks:
+
+  npm-audit-frontend:
     needs: code-quality
     runs-on: ubuntu-latest
+    if: ${{ needs.filter.outputs.client_changed }}
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -32,18 +56,26 @@ jobs:
       working-directory: client
       continue-on-error: true
 
+  npm-audit-backend:
+    runs-on: ubuntu-latest
+    if: ${{ needs.filter.outputs.server_changed }}
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
     - name: Install backend dependencies
       run: npm install
       working-directory: server
-
     - name: Run npm audit on backend
       run: npm audit --audit-level=moderate
       working-directory: server
       continue-on-error: true
 
-  build:
+  build_and_scan:
     runs-on: ubuntu-latest
     needs: static-checks
+    if: ${{ needs.filter.outputs.server_changed || needs.filter.outputs.client_changed }}
     steps:
     - name: Log in to Docker Hub
       uses: docker/login-action@v2
@@ -58,38 +90,41 @@ jobs:
       uses: docker/setup-buildx-action@v3
 
     - name: Build and push frontend image
+      if: ${{ needs.filter.outputs.client_changed }}
       uses: docker/build-push-action@v6
       with:
         push: true
-        tags: fancyvanilla/resume-builder-frontend:v2
+        tags: fancyvanilla/resume-builder-frontend:${IMAGE_TAG::7}
         context: "{{defaultContext}}:client"
 
     - name: Build and push backend image
       uses: docker/build-push-action@v6
+      if: ${{ needs.filter.outputs.server_changed }}
       with:
         push: true
-        tags: fancyvanilla/resume-builder-backend:v2
+        tags: fancyvanilla/resume-builder-backend:${IMAGE_TAG::7}
         context: "{{defaultContext}}:server"
 
     - name: Trivy scan for frontend
       uses: aquasecurity/trivy-action@0.28.0
+      if: ${{ needs.filter.outputs.client_changed }}
       with:
-        image-ref: fancyvanilla/resume-builder-frontend:v2
+        image-ref: fancyvanilla/resume-builder-frontend:${IMAGE_TAG::7}
         severity: CRITICAL,HIGH
         ignore-unfixed: true
         format: table
 
     - name: Trivy scan for backend
       uses: aquasecurity/trivy-action@0.28.0
+      if: ${{ needs.filter.outputs.server_changed }}
       with:
-        image-ref: fancyvanilla/resume-builder-backend:v2
+        image-ref: fancyvanilla/resume-builder-backend:${IMAGE_TAG::7}
         severity: CRITICAL,HIGH
         ignore-unfixed: true
         format: table
 
   deploy:
-    if: false  # Disable deployment for now to test the workflow
-    needs: build
+    needs: build_and_scan
     runs-on: self-hosted
     steps:
     - name: Checkout code
@@ -106,6 +141,17 @@ jobs:
     - name: Helm lint
       run: helm lint ./mychart
 
+    - name: Setup helm flags
+      run: |
+        FLAGS=""
+        if ${{ needs.filter.outputs.client_changed }}; then
+          FLAGS="$FLAGS --set frontend.image.tag=${IMAGE_TAG::7}"
+        fi
+        if ${{ needs.filter.outputs.server_changed }}; then
+          FLAGS="$FLAGS --set backend.image.tag=${IMAGE_TAG::7}"
+        fi
+        echo "flags=$FLAGS" >> $env:GITHUB_ENV
+
     - name: Deploy app
       run: |
-        helm upgrade --install myapp ./mychart --namespace web-server --create-namespace
+        helm upgrade --install myapp ./mychart --namespace web-server --create-namespace ${{ env.flags }}

@@ -5,7 +5,7 @@ import Resume from "./components/Resume"
 
 function App() {
 
-  const [result,setResult]=useState({})
+  const [ result, setResult ]=useState({})
   return (
     <div className="App">
       <BrowserRouter>
