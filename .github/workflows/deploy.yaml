@@ -3,7 +3,7 @@ on:
   push:
     branches: [ master ]
 env:
-    IMAGE_TAG: ${{ github.sha[0:7] }}
+    IMAGE_TAG: ${{ github.sha }}
 jobs:
   filter:
     runs-on: ubuntu-latest
