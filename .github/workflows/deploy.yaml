@@ -140,15 +140,15 @@ jobs:
     - name: Helm lint
       run: helm lint ./mychart
 
-    - name: Setup helm flags
+    - name: Setup helm FLAGS
       run: |
-        FLAGS=""
-        if ${{ needs.filter.outputs.client_changed == 'true' }}; then
-          FLAGS="$FLAGS --set frontend.image.tag=${{ env.IMAGE_TAG }}"
-        fi
-        if ${{ needs.filter.outputs.server_changed == 'true' }}; then
-          FLAGS="$FLAGS --set backend.image.tag=${{ env.IMAGE_TAG }}"
-        fi
+        $FLAGS = ""
+        if ($true) {
+          $FLAGS += " --set frontend.image.tag=$env:IMAGE_TAG"
+        }
+        if ($true) {
+          $FLAGS += " --set backend.image.tag=$env:IMAGE_TAG"
+        }
         echo "flags=$FLAGS" >> $env:GITHUB_ENV
 
     - name: Deploy app
