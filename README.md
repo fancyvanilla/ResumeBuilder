@@ -28,7 +28,7 @@ This repository hosts a **full-stack AI resume builder application** with **Reac
   - Frontend & backend deployments  
   - Autoscaling setup  
   - Persistent volume claims for storage
-  PS: In values.yaml, you can include your specific values like image names, tags etc.
+PS: In values.yaml, you can include your specific values like image names, tags etc.
 - CI/CD validates code quality (SonarQube), container security (Trivy), and pushes tagged images to the registry.  
 - Docker images use `github.sha` for versioning and traceability.  
 - Frontend and backend paths are tracked separately for image builds and deployments.  
